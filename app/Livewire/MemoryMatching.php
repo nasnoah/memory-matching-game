@@ -9,14 +9,14 @@ class MemoryMatching extends Component
     public int $maxItems;
     public array $items;
     public array $memoryItems;
+    public bool $isChecking;
 
     public function mount() 
     {
         $this->maxItems = 12;
         $this->items = $this->getItems($this->maxItems);
         $this->memoryItems = $this->getMemoryItems($this->items);
-
-        // dd($this->memoryItems);
+        $this->isChecking = false;
     }
 
     public function getItems(int $maxItems): array 
@@ -46,7 +46,7 @@ class MemoryMatching extends Component
     {
         // $memoryItems = collect($items)->multiply(2)->shuffle()->toArray();
         $memoryItems = collect($items)->map(function ($item, $key) {
-            $pairItems = collect($item)->multiply(2)->map(fn ($map) => ['pair_id' => $key, 'item' => $map, 'flipped' => 0])->toArray();
+            $pairItems = collect($item)->multiply(2)->map(fn ($map) => ['pair_id' => $key, 'item' => $map, 'state' => 0])->toArray();
             return $pairItems;
         })->flatten(1)
             ->shuffle()
@@ -55,14 +55,52 @@ class MemoryMatching extends Component
         return $memoryItems;
     }
 
-    public function checkIfCorrectGuessing() 
+    public function matchingItem($key) 
     {
-        // dd('test 123');
-        $this->memoryItems = collect($this->memoryItems)->map(function ($item) { 
-            $item['flipped'] = 1;
+        if ($this->isChecking) return;
+
+        $this->memoryItems = collect($this->memoryItems)->map(function ($item, $index) use ($key) { 
+            if ($key == $index && $item['state'] != 2) {
+                $item['state'] = 1;
+            }
             return $item;
         })->toArray();
-        // return true;
+
+        $matchingItems = collect($this->memoryItems)->filter(fn ($item) => $item['state'] == 1);
+        
+        if ($matchingItems->count() == 2) {
+            $this->isChecking = true;
+            $this->dispatch('delayedCheckIfCorrectGuessing');
+        }
+        else {
+            $this->checkIfCorrectGuessing();
+        }
+    }
+
+    public function checkIfCorrectGuessing() 
+    {
+        $items = collect($this->memoryItems);
+
+        $matchingItems = collect($items)->filter(fn ($item) => $item['state'] == 1);
+        
+        if ($matchingItems->count() == 2) {
+            $isMatching = $matchingItems->pluck('pair_id')->duplicates()->count() != 0;
+            
+            $items = $items->map(function ($item, $index) use ($matchingItems, $isMatching) {
+                if ($matchingItems->has($index)) {
+                    $item['state'] = $isMatching ? 2 : 0;
+                }
+                return $item;
+            });
+        }
+        
+        $this->memoryItems = $items->toArray();
+
+        $this->isChecking = false;
+    }
+
+    public function updatingMatchingItems() {
+
     }
 
     public function render()

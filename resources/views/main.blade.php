@@ -19,7 +19,7 @@
     </head>
     <body class="bg-[#FDFDFC] text-[#1b1b18]">
         <div class="flex p-6 lg:p-8 items-center lg:justify-center min-h-screen flex-col">
-            <livewire:memory-matching />
+            <livewire:main-menu />
         </div>
 
         @livewireScripts

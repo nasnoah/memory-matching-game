@@ -1,6 +1,6 @@
 <div>
-    @if ($this->isStarting)
-        @if ($this->hasEnded)
+    @if ($this->gameStarted)
+        @if ($this->gameFinished)
             <div class="flex flex-col items-center gap-10">
                 <div class="text-5xl font-bold">
                     Congratulations, You Won !!!
@@ -20,7 +20,7 @@
             </div>
         @else
             <div class="flex flex-col items-center gap-10 ">
-                <livewire:memory-matching wire:model.live="hasEnded" :$difficulty :key="$difficulty.now()->timestamp" />
+                <livewire:memory-matching wire:model.live="gameFinished" :$difficulty :key="$difficulty.now()->timestamp" />
                     
                 <div wire:click="stopGame" 
                     class="w-fit px-4 py-2 bg-gray-800 text-white text-2xl rounded-lg shadow-md cursor-pointer hover:bg-gray-700">

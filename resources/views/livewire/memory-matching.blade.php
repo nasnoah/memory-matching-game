@@ -2,7 +2,7 @@
     {{-- Cards --}}
     <div class="grid grid-flow-col grid-rows-3 gap-5">
         {{-- Card --}}
-        @foreach ($memoryItems as $key => $item)
+        @foreach ($gameItems as $key => $item)
             <div wire:key="{{ $key.'-'.$item['state'] }}"
                 class="relative w-48 h-64" wire:click="matchingItem({{ $key }})">
                 <div class="absolute w-48 h-64 bg-white rounded-lg shadow-md cursor-pointer z-10">
@@ -27,9 +27,9 @@
                 }, 3000);
             });
 
-            $wire.on('delayedCheckIfCorrectGuessing', (event) => {
+            $wire.on('delayedAmendingMatchingItems', (event) => {
                 setTimeout(() => {
-                    $wire.checkIfCorrectGuessing();
+                    $wire.amendingMatchingItems(event.matchingItems, event.isMatching);
                 }, 500); 
             });
         </script>

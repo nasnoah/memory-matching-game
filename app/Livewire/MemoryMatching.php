@@ -5,30 +5,29 @@ namespace App\Livewire;
 use Livewire\Attributes\Modelable;
 use Livewire\Component;
 
-class MemoryMatching extends Component
-{
+class MemoryMatching extends Component {
+
     public string $difficulty;
 
     public int $maxItems;
     public bool $isChecking;
 
     #[Modelable]
-    public bool $hasEnded;
+    public bool $gameFinished;
     
     public array $items;
-    public array $memoryItems;
+    public array $gameItems;
 
-    public function mount() 
-    {
+    public function mount() {
         $this->maxItems = $this->getMaxItems($this->difficulty);
         $this->isChecking = false;
-        $this->hasEnded = false;
+        $this->gameFinished = false;
 
         $this->items = $this->getItems($this->maxItems);
-        $this->memoryItems = $this->getMemoryItems($this->items);
+        $this->gameItems = $this->getGameItems($this->items);
 
         $this->dispatch('startGame');
-        // dd($this->memoryItems);
+        // dd($this->gameItems);
     }
 
     public function getMaxItems(string $difficulty) {
@@ -39,8 +38,7 @@ class MemoryMatching extends Component
         };
     }
 
-    public function getItems(int $maxItems): array 
-    {
+    public function getItems(int $maxItems): array {
         $availableItems = [
             'Air',
             'Bicycle',
@@ -63,82 +61,80 @@ class MemoryMatching extends Component
     }
 
     // State: 0 - hidden, 1 - shown, 2 - locked/correctly guessed
-    public function getMemoryItems(array $items): array 
-    {
-        // $memoryItems = collect($items)->multiply(2)->shuffle()->toArray();
-        $memoryItems = collect($items)->map(function ($item, $key) {
+    public function getGameItems(array $items): array {
+        // $gameItems = collect($items)->multiply(2)->shuffle()->toArray();
+        $gameItems = collect($items)->map(function ($item, $key) {
             $pairItems = collect($item)->multiply(2)->map(fn ($map) => ['pair_id' => $key, 'item' => $map, 'state' => 1])->toArray();
             return $pairItems;
         })->flatten(1)
             ->shuffle()
             ->toArray();
 
-        return $memoryItems;
+        return $gameItems;
     }
 
-    public function matchingItem($key) 
-    {
+    public function matchingItem($key) {
         if ($this->isChecking) return;
 
-        $this->memoryItems = collect($this->memoryItems)->map(function ($item, $index) use ($key) { 
+        $this->gameItems = collect($this->gameItems)->map(function ($item, $index) use ($key) { 
             if ($key == $index && $item['state'] != 2) {
                 $item['state'] = 1;
             }
             return $item;
         })->toArray();
-
-        $matchingItems = collect($this->memoryItems)->filter(fn ($item) => $item['state'] == 1);
         
+        $this->checkMatch();
+    }
+
+    public function checkMatch() {
+        $items = collect($this->gameItems);
+
+        $matchingItems = collect($items)->filter(fn ($item) => $item['state'] == 1);
+
         if ($matchingItems->count() == 2) {
             $this->isChecking = true;
-            $this->dispatch('delayedCheckIfCorrectGuessing');
-        }
-        else {
-            $this->checkIfCorrectGuessing();
+
+            $isMatching = $matchingItems->pluck('pair_id')->duplicates()->count() != 0;
+            
+            if ($isMatching) {
+                $this->amendingMatchingItems($matchingItems, $isMatching);
+            }
+            else {
+                $this->dispatch('delayedAmendingMatchingItems', matchingItems: $matchingItems, isMatching: $isMatching);
+            }
         }
     }
 
-    public function checkIfCorrectGuessing() 
-    {
-        $items = collect($this->memoryItems);
+    public function amendingMatchingItems($matchingItems, $isMatching) {
+        $matchingItems = collect($matchingItems);
 
-        $matchingItems = collect($items)->filter(fn ($item) => $item['state'] == 1);
-        
-        if ($matchingItems->count() == 2) {
-            $isMatching = $matchingItems->pluck('pair_id')->duplicates()->count() != 0;
-            
-            $items = $items->map(function ($item, $index) use ($matchingItems, $isMatching) {
-                if ($matchingItems->has($index)) {
-                    $item['state'] = $isMatching ? 2 : 0;
-                }
-                return $item;
-            });
-        }
-        
-        $this->memoryItems = $items->toArray();
+        $this->gameItems = collect($this->gameItems)->map(function ($item, $index) use ($matchingItems, $isMatching) {
+            if ($matchingItems->has($index)) {
+                $item['state'] = $isMatching ? 2 : 0;
+            }
+            return $item;
+        })->toArray();       
 
-        $this->hasEnded();
+        $this->isGameFinished();
 
         $this->isChecking = false;
     }
 
     public function startGame() {
-        $this->memoryItems = collect($this->memoryItems)->map(function ($map) {
+        $this->gameItems = collect($this->gameItems)->map(function ($map) {
             $map['state'] = 0;
             return $map;
         })->toArray();
     }
 
-    public function hasEnded() 
-    {
-        $countEndedItems = collect($this->memoryItems)->filter(fn ($item) => $item['state'] == 2)->count();
-        $this->hasEnded = $countEndedItems == $this->maxItems;
+    public function isGameFinished() {
+        $countEndedItems = collect($this->gameItems)->filter(fn ($item) => $item['state'] == 2)->count();
+        $this->gameFinished = $countEndedItems == $this->maxItems;
     }
 
-    public function render()
-    {
+    public function render() {
         return view('livewire.memory-matching', [
-            'memoryItems' => $this->memoryItems
+            'gameItems' => $this->gameItems
         ]);
     }
 }

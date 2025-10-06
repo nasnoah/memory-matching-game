@@ -4,7 +4,7 @@
         {{-- Card --}}
         @foreach ($gameItems as $key => $item)
             <div wire:key="{{ $key.'-'.$item['state'] }}"
-                class="relative w-48 h-64" wire:click="matchingItem({{ $key }})">
+                class="relative w-48 h-64" wire:click="selectItem({{ $key }})">
                 <div class="absolute w-48 h-64 bg-white rounded-lg shadow-md cursor-pointer z-10">
                     {{-- Image --}}
                     <div class="w-full h-full flex items-center justify-center text-3xl font-bold select-none">

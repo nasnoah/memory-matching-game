@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class MainMenu extends Component {
@@ -11,11 +12,18 @@ class MainMenu extends Component {
 
     public string $difficulty; // easy, mid, hard
 
+    public $timeTaken;
+    public int $moves;
+
+
     public function mount() {
         $this->gameStarted = false;
         $this->gameFinished = false;
 
         $this->difficulty = 'easy';
+
+        $this->timeTaken = null;
+        $this->moves = 0;
     }
 
     public function startGame() {
@@ -24,6 +32,13 @@ class MainMenu extends Component {
 
     public function stopGame() {
         $this->gameStarted = false;
+    }
+
+    #[On('game-finished')]
+    public function gameFinished($gameFinished, $timeTaken, $moves) {
+        $this->gameFinished = $gameFinished;
+        $this->timeTaken = $timeTaken;
+        $this->moves = $moves;
     }
 
     public function restartGame() {

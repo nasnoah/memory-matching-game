@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Illuminate\Support\Carbon;
 use Livewire\Attributes\Modelable;
 use Livewire\Component;
 
@@ -12,9 +13,14 @@ class MemoryMatching extends Component {
     public int $maxItems;
     public bool $isChecking;
 
-    #[Modelable]
     public bool $gameFinished;
     
+    public ?Carbon $startTime;
+    public ?Carbon $endTime;
+    public $timeTaken;
+
+    public int $moves;
+
     public array $items;
     public array $gameItems;
 
@@ -22,6 +28,12 @@ class MemoryMatching extends Component {
         $this->maxItems = $this->getMaxItems($this->difficulty);
         $this->isChecking = false;
         $this->gameFinished = false;
+
+        $this->startTime = null;
+        $this->endTime = null;
+        $this->timeTaken = null;
+
+        $this->moves = 0;
 
         $this->items = $this->getItems($this->maxItems);
         $this->gameItems = $this->getGameItems($this->items);
@@ -73,8 +85,8 @@ class MemoryMatching extends Component {
         return $gameItems;
     }
 
-    public function matchingItem($key) {
-        if ($this->isChecking) return;
+    public function selectItem($key) {
+        if ($this->isChecking || $this->gameFinished) return;
 
         $this->gameItems = collect($this->gameItems)->map(function ($item, $index) use ($key) { 
             if ($key == $index && $item['state'] != 2) {
@@ -93,6 +105,7 @@ class MemoryMatching extends Component {
 
         if ($matchingItems->count() == 2) {
             $this->isChecking = true;
+            $this->moves++;
 
             $isMatching = $matchingItems->pluck('pair_id')->duplicates()->count() != 0;
             
@@ -113,7 +126,7 @@ class MemoryMatching extends Component {
                 $item['state'] = $isMatching ? 2 : 0;
             }
             return $item;
-        })->toArray();       
+        })->toArray();
 
         $this->isGameFinished();
 
@@ -125,11 +138,20 @@ class MemoryMatching extends Component {
             $map['state'] = 0;
             return $map;
         })->toArray();
+
+        $this->startTime = now();
     }
 
     public function isGameFinished() {
         $countEndedItems = collect($this->gameItems)->filter(fn ($item) => $item['state'] == 2)->count();
         $this->gameFinished = $countEndedItems == $this->maxItems;
+
+        if ($this->gameFinished) {
+            $this->endTime = now();
+            $this->timeTaken = (int)$this->startTime->diffInSeconds($this->endTime);
+            
+            $this->dispatch('game-finished', gameFinished: $this->gameFinished, timeTaken: $this->timeTaken, moves: $this->moves);
+        }
     }
 
     public function render() {

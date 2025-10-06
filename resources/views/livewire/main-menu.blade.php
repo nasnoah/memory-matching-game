@@ -6,6 +6,15 @@
                     Congratulations, You Won !!!
                 </div>
 
+                <div class="text-teal-500 text-3xl">
+                    <div>
+                        Time Taken: {{ $this->timeTaken }} seconds
+                    </div>
+                    <div class="">
+                        Moves: {{ $this->moves }}
+                    </div>
+                </div>
+
                 <div class="flex items-center gap-3">
                     <div wire:click="restartGame" 
                         class="w-fit px-4 py-2 bg-gray-800 text-white text-2xl rounded-lg shadow-md cursor-pointer hover:bg-gray-700">
@@ -20,7 +29,7 @@
             </div>
         @else
             <div class="flex flex-col items-center gap-10 ">
-                <livewire:memory-matching wire:model.live="gameFinished" :$difficulty :key="$difficulty.now()->timestamp" />
+                <livewire:memory-matching :$difficulty :key="$difficulty.now()->timestamp" />
                     
                 <div wire:click="stopGame" 
                     class="w-fit px-4 py-2 bg-gray-800 text-white text-2xl rounded-lg shadow-md cursor-pointer hover:bg-gray-700">

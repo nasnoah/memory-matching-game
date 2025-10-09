@@ -23,5 +23,10 @@ class DatabaseSeeder extends Seeder
         $user->player()->create([
             'username'  => 'NasNoAH',
         ]);
+
+        $this->call([
+            GameItemSeeder::class,
+            LevelSeeder::class,
+        ]);
     }
 }

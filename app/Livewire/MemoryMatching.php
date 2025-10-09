@@ -2,11 +2,18 @@
 
 namespace App\Livewire;
 
+use App\Enums\GameStatus;
+use App\Models\Game;
+use App\Models\GameItem;
+use App\Models\Level;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Modelable;
 use Livewire\Component;
 
 class MemoryMatching extends Component {
+
+    public Level $level;
+    public Game $game;
 
     public string $difficulty;
 
@@ -15,8 +22,8 @@ class MemoryMatching extends Component {
 
     public bool $gameFinished;
     
-    public ?Carbon $startTime;
-    public ?Carbon $endTime;
+    public ?Carbon $startAt;
+    public ?Carbon $endAt;
     public $timeTaken;
 
     public int $moves;
@@ -25,21 +32,36 @@ class MemoryMatching extends Component {
     public array $gameItems;
 
     public function mount() {
+        $this->level ??= Level::first();
+        $this->game ??= new Game();
+
         $this->maxItems = $this->getMaxItems($this->difficulty);
         $this->isChecking = false;
         $this->gameFinished = false;
 
-        $this->startTime = null;
-        $this->endTime = null;
+        $this->startAt = null;
+        $this->endAt = null;
         $this->timeTaken = null;
 
         $this->moves = 0;
 
-        $this->items = $this->getItems($this->maxItems);
-        $this->gameItems = $this->getGameItems($this->items);
+        $this->items = [];
+        $this->gameItems = [];
+
+        $this->setupGame();
 
         $this->dispatch('startGame');
         // dd($this->gameItems);
+    }
+
+    public function setupGame() {
+        $this->gameItems = $this->getGameItems($this->maxItems);
+
+        $this->game->fill([
+            'level_id'      => $this->level->id,
+            'player_id'     => auth()->user()?->player?->id,
+            'game_items'    => $this->gameItems,
+        ])->save();
     }
 
     public function getMaxItems(string $difficulty) {
@@ -50,32 +72,13 @@ class MemoryMatching extends Component {
         };
     }
 
-    public function getItems(int $maxItems): array {
-        $availableItems = [
-            'Air',
-            'Bicycle',
-            'Cat',
-            'Dinasour',
-            'Elephant',
-            'Fan',
-            'Grease',
-            'Horse',
-            'Internet',
-            'Joker',
-            'King',
-            'Language',
-        ];
-
-        // $randomItems = collect($availableItems)->random($maxItems/2)->toArray();
-        $randomItems = collect($availableItems)->shuffle()->take($maxItems/2)->toArray();
-
-        return $randomItems;
-    }
-
     // State: 0 - hidden, 1 - shown, 2 - locked/correctly guessed
-    public function getGameItems(array $items): array {
-        // $gameItems = collect($items)->multiply(2)->shuffle()->toArray();
-        $gameItems = collect($items)->map(function ($item, $key) {
+    public function getGameItems(int $maxItems): array {
+        $availableGameItems = GameItem::pluck('name');
+
+        $randomNeededGameItems = collect($availableGameItems)->shuffle()->take($maxItems/2);
+
+        $gameItems = collect($randomNeededGameItems)->map(function ($item, $key) {
             $pairItems = collect($item)->multiply(2)->map(fn ($map) => ['pair_id' => $key, 'item' => $map, 'state' => 1])->toArray();
             return $pairItems;
         })->flatten(1)
@@ -139,7 +142,13 @@ class MemoryMatching extends Component {
             return $map;
         })->toArray();
 
-        $this->startTime = now();
+        $this->startAt = now();
+
+        $this->game->fill([
+            'game_items'    => $this->gameItems,
+            'status'        => GameStatus::STARTED,
+            'start_at'      => $this->startAt,
+        ])->save();
     }
 
     public function isGameFinished() {
@@ -147,8 +156,16 @@ class MemoryMatching extends Component {
         $this->gameFinished = $countEndedItems == $this->maxItems;
 
         if ($this->gameFinished) {
-            $this->endTime = now();
-            $this->timeTaken = (int)$this->startTime->diffInSeconds($this->endTime);
+            $this->endAt = now();
+            $this->timeTaken = number_format($this->startAt->diffInSeconds($this->endAt), 2);
+
+            $this->game->fill([
+                'status'        => GameStatus::ENDED,
+                'end_at'        => $this->endAt,
+                'time_taken'    => $this->timeTaken,
+                'moves'         => $this->moves,
+                'scores'        => null // TODO: create score formula
+            ])->save();
             
             $this->dispatch('game-finished', gameFinished: $this->gameFinished, timeTaken: $this->timeTaken, moves: $this->moves);
         }

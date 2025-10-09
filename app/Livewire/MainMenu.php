@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Models\Player;
+use App\Models\User;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -14,7 +16,6 @@ class MainMenu extends Component {
 
     public $timeTaken;
     public int $moves;
-
 
     public function mount() {
         $this->gameStarted = false;
@@ -52,6 +53,14 @@ class MainMenu extends Component {
 
     public function selectDifficulty(string $difficulty) {   
         $this->difficulty = $difficulty;
+    }
+
+    // Dummy
+    public function loginUser() {
+        if (auth()->check()) return;
+        
+        $user = User::first();
+        auth()->login($user);
     }
 
     public function render() {

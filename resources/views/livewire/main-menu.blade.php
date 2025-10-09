@@ -1,4 +1,6 @@
 <div>
+    {{ auth()->user()?->player?->name }}
+    <div wire:click="loginUser" class="cursor-pointer">Login</div>
     @if ($this->gameStarted)
         @if ($this->gameFinished)
             <div class="flex flex-col items-center gap-10">

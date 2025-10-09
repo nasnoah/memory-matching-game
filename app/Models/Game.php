@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GameStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -27,6 +28,7 @@ class Game extends Model {
     ];
 
     protected $casts = [
+        'status'        => GameStatus::class,
         'game_items'    => 'array',
         'start_at'      => 'datetime',
         'end_at'        => 'datetime', 

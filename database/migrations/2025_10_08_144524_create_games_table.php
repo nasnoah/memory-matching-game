@@ -29,7 +29,7 @@ return new class extends Migration
 
             $table->json('game_items')->nullable();
 
-            $table->string('status')->nullable()->comment('enum ');
+            $table->string('status')->nullable()->comment('enum GameStatus');
 
             $table->timestamp('start_at')->nullable();
             $table->timestamp('end_at')->nullable();

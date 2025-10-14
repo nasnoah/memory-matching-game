@@ -1,5 +1,5 @@
 <div>
-    {{ auth()->user()?->player?->name }}
+    {{ auth()->user()->player->username }}
     <div wire:click="loginUser" class="cursor-pointer">Login</div>
     @if ($this->gameStarted)
         @if ($this->gameFinished)

@@ -131,9 +131,29 @@ class MemoryMatching extends Component {
             return $item;
         })->toArray();
 
+        // ? Unmnemo Mechanism
+        $this->gameItems = $this->reshuffleUnmatchItems($this->gameItems);
+
         $this->isGameFinished();
 
         $this->isChecking = false;
+    }
+
+    public function reshuffleUnmatchItems($items) {
+        $unmatchItems = collect($items)->filter(fn ($item) => $item['state'] == 0)->shuffle();
+
+        $items = collect($items)->map(function ($item) use ($unmatchItems) {
+            static $index = 0;
+
+            if ($item['state'] == 0) {
+                return $unmatchItems[$index++];
+            }
+            else {
+                return $item;
+            } 
+        })->toArray();
+
+        return $items;
     }
 
     public function startGame() {

@@ -14,6 +14,7 @@
                 </div>
                 <div :class="'{{ $item['state'] }}' == '0' ? 'z-10' : 'z-5'"
                     class="absolute w-48 h-64 bg-teal-600 rounded-lg shadow-md cursor-pointer">
+                    {{-- {{ $item['pair_id'] }} --}}
                 </div>
             </div>
         @endforeach

@@ -61,7 +61,8 @@ class MainMenu extends Component {
         if (auth()->check()) return;
         
         $user = User::first();
-        auth()->login($user);
+        if ($user) 
+            auth()->login($user);
     }
 
     public function render() {

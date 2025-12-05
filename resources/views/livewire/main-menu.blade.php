@@ -1,6 +1,6 @@
 <div>
-    {{ auth()->user()->player->username }}
-    <div wire:click="loginUser" class="cursor-pointer">Login</div>
+    {{-- {{ auth()->user()?->player?->username }}
+    <div wire:click="loginUser" class="cursor-pointer">Login</div> --}}
     @if ($this->gameStarted)
         @if ($this->gameFinished)
             <div class="flex flex-col items-center gap-10">
@@ -30,7 +30,7 @@
                 </div>
             </div>
         @else
-            <div class="flex flex-col items-center gap-10 ">
+            <div class="flex flex-col items-center gap-10">
                 <livewire:memory-matching :$difficulty :key="$difficulty.now()->timestamp" />
                     
                 <div wire:click="stopGame" 

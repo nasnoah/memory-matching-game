@@ -132,7 +132,7 @@ class MemoryMatching extends Component {
         })->toArray();
 
         // ? Unmnemo Mechanism
-        $this->gameItems = $this->reshuffleUnmatchItems($this->gameItems);
+        // $this->gameItems = $this->reshuffleUnmatchItems($this->gameItems);
 
         $this->isGameFinished();
 

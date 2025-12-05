@@ -18,6 +18,7 @@ class MainMenu extends Component {
     public int $moves;
 
     public function mount() {
+        $this->loginUser();
         $this->gameStarted = false;
         $this->gameFinished = false;
 

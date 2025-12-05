@@ -4,16 +4,16 @@
         {{-- Card --}}
         @foreach ($gameItems as $key => $item)
             <div wire:key="{{ $key.'-'.$item['state'] }}"
-                class="relative w-48 h-64" wire:click="selectItem({{ $key }})">
-                <div class="absolute w-48 h-64 bg-white rounded-lg shadow-md cursor-pointer z-10">
+                class="relative w-[10vw] h-[24vh]" wire:click="selectItem({{ $key }})">
+                <div class="absolute w-[10vw] h-[24vh] bg-white rounded-lg shadow-md cursor-pointer z-10">
                     {{-- Image --}}
-                    <div class="w-full h-full flex items-center justify-center text-3xl font-bold select-none">
+                    <div class="w-full h-full flex items-center justify-center text-[1.75vw] font-bold select-none">
                         {{ $item['item'] }}
                     </div>
                     {{-- {{ $key.'-'.$item['pair_id'].'-'.$item['state'] }} --}}
                 </div>
                 <div :class="'{{ $item['state'] }}' == '0' ? 'z-10' : 'z-5'"
-                    class="absolute w-48 h-64 bg-teal-600 rounded-lg shadow-md cursor-pointer">
+                    class="absolute w-[10vw] h-[24vh] bg-teal-600 rounded-lg shadow-md cursor-pointer">
                     {{-- {{ $item['pair_id'] }} --}}
                 </div>
             </div>
